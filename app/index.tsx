@@ -50,11 +50,31 @@ export default function Index() {
     }
   };
 
+  const getCategoriasIniciais = (): Categoria[] => {
+    return [
+      { id: '1', descricao: 'Contas', cor: 'red' },
+      { id: '2', descricao: 'Alimentação', cor: 'green' },
+      { id: '3', descricao: 'Transporte', cor: 'blue' },
+      { id: '4', descricao: 'Saúde', cor: 'orange' },
+      { id: '5', descricao: 'Lazer', cor: 'purple' }
+    ];
+  };
+
   const carregarCategoriasSalvas = async () => {
     const json = await AsyncStorage.getItem('categorias');
+
     if (json) {
       const lista = JSON.parse(json);
+      if (lista.length === 0) {
+        // Se não houver categorias salvas, inicializa com as categorias padrão
+        await AsyncStorage.setItem('categorias', JSON.stringify(getCategoriasIniciais()));
+        setCategorias(getCategoriasIniciais());
+        return;
+      }
       setCategorias(lista);
+    } else {
+      await AsyncStorage.setItem('categorias', JSON.stringify(getCategoriasIniciais()));
+      setCategorias(getCategoriasIniciais());
     }
   };
 
@@ -233,6 +253,7 @@ export default function Index() {
           AsyncStorage.setItem('categorias', JSON.stringify(atualizadas));
         }}
         onDeleteCategoria={onDeleteCategoria}
+        motivoSelecionado={dados[itemSelecionadoIndex!]?.motivo}
       />
     </SafeAreaView>
   );
