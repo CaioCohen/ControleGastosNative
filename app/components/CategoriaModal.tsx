@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableWithoutFeedback,
@@ -64,75 +65,79 @@ export const CategoriaModal = ({
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
-              <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>
-                <Text>{motivoSelecionado}</Text>
-              </Text>
-
-              {categorias.map(cat => (
-                <View
-                  key={cat.id}
-                  style={[
-                    styles.modalOption,
-                    { justifyContent: 'space-between' },
-                  ]}
-                >
-                  <Pressable
-                    style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
-                    onPress={() => onSelect(cat.id)}
-                  >
-                    <View
-                      style={[
-                        styles.bolinha,
-                        { backgroundColor: cat.cor, marginRight: 8 },
-                      ]}
-                    />
-                    <Text>{cat.descricao}</Text>
-                  </Pressable>
-
-                  {modoEdicao && (
-                    <Pressable onPress={() => onDeleteCategoria(cat.id)}>
-                      <Text style={{ color: 'red', fontSize: 16 }}>❌</Text>
-                    </Pressable>
-                  )}
-                </View>
-              ))}
-
-              <Pressable onPress={() => onSelect(null)}>
-                <Text style={{ color: 'gray', fontSize: 16, marginTop: 12 }}>
-                  Remover categoria
+              <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
+                
+                <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>
+                  {motivoSelecionado}
                 </Text>
-              </Pressable>
 
-              {!modoEdicao && (
-                <Pressable onPress={() => setModoEdicao(true)}>
-                  <Text style={{ color: '#007AFF', fontSize: 16, marginTop: 12 }}>
-                    Editar
+                {categorias.map(cat => (
+                  <View
+                    key={cat.id}
+                    style={[
+                      styles.modalOption,
+                      { justifyContent: 'space-between' },
+                    ]}
+                  >
+                    <Pressable
+                      style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                      onPress={() => onSelect(cat.id)}
+                    >
+                      <View
+                        style={[
+                          styles.bolinha,
+                          { backgroundColor: cat.cor, marginRight: 8 },
+                        ]}
+                      />
+                      <Text>{cat.descricao}</Text>
+                    </Pressable>
+
+                    {modoEdicao && (
+                      <Pressable onPress={() => onDeleteCategoria(cat.id)}>
+                        <Text style={{ color: 'red', fontSize: 16 }}>❌</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                ))}
+
+                <Pressable onPress={() => onSelect(null)}>
+                  <Text style={{ color: 'gray', fontSize: 16, marginTop: 12 }}>
+                    Remover categoria
                   </Text>
                 </Pressable>
-              )}
 
-              {modoEdicao && (
-                <View style={{ marginTop: 24 }}>
-                  <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Nova categoria</Text>
-                  <TextInput
-                    placeholder="Descrição"
-                    value={descricao}
-                    onChangeText={setDescricao}
-                    style={[styles.input, { marginBottom: 8 }]}
-                  />
-                  <TextInput
-                    placeholder="Cor (ex: red, green, #3366ff)"
-                    value={cor}
-                    onChangeText={setCor}
-                    style={[styles.input, { marginBottom: 8 }]}
-                  />
-                  <Pressable style={styles.button} onPress={adicionar}>
-                    <Text style={styles.buttonText}>Adicionar</Text>
+                {!modoEdicao && (
+                  <Pressable onPress={() => setModoEdicao(true)}>
+                    <Text style={{ color: '#007AFF', fontSize: 16, marginTop: 12 }}>
+                      Editar
+                    </Text>
                   </Pressable>
-                </View>
-              )}
+                )}
 
+                {modoEdicao && (
+                  <View style={{ marginTop: 24 }}>
+                    <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Nova categoria</Text>
 
+                    <TextInput
+                      placeholder="Descrição"
+                      value={descricao}
+                      onChangeText={setDescricao}
+                      style={[styles.input, { marginBottom: 8, width: '100%' }]}
+                    />
+
+                    <TextInput
+                      placeholder="Cor (ex: red, green)"
+                      value={cor}
+                      onChangeText={(text) => setCor(text.toLowerCase())}
+                      style={[styles.input, { marginBottom: 8, width: '100%' }]}
+                    />
+
+                    <Pressable style={[styles.button, { width: '100%' }]} onPress={adicionar}>
+                      <Text style={styles.buttonText}>Adicionar</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </ScrollView>
             </View>
           </TouchableWithoutFeedback>
         </View>

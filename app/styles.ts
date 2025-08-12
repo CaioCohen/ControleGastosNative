@@ -47,17 +47,23 @@ safeArea: {
     padding: 12,
     marginBottom: 12,
     fontSize: 16,
+    width: '100%',
+    alignItems: 'stretch',
+    minWidth: '100%',
   },
   button: {
     backgroundColor: '#007AFF',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
+    textAlign: 'center',
   },
   buttonText: {
     color: '#fff',
+    textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',
+    minWidth: '100%'
   },
   deleteButton: {
     flex: 0.5,
@@ -94,6 +100,7 @@ safeArea: {
     padding: 20,
     width: 250,
     alignItems: 'flex-start',
+    maxHeight: '80%',
   },
  modalOption: {
   flexDirection: 'row',
