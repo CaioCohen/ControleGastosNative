@@ -13,6 +13,7 @@ import {
   View
 } from 'react-native';
 import { CategoriaModal } from './components/CategoriaModal';
+import { Categoria } from './models/Categoria';
 import { Dado } from './models/Dado';
 import { styles } from './styles';
 
@@ -29,9 +30,11 @@ export default function Index() {
   const [mostraAcoes, setMostraAcoes] = useState(false);
   const [itemSelecionadoIndex, setItemSelecionadoIndex] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
     carregarDadosSalvos();
+    carregarCategoriasSalvas(); // novo
   }, []);
 
   const carregarDadosSalvos = async () => {
@@ -44,6 +47,14 @@ export default function Index() {
       }
     } catch (e) {
       console.error('Erro ao carregar dados salvos:', e);
+    }
+  };
+
+  const carregarCategoriasSalvas = async () => {
+    const json = await AsyncStorage.getItem('categorias');
+    if (json) {
+      const lista = JSON.parse(json);
+      setCategorias(lista);
     }
   };
 
@@ -87,13 +98,25 @@ export default function Index() {
     setModalVisible(true);
   };
 
-  const aplicarCategoria = (categoria: Dado['categoria'] | null) => {
+  const onDeleteCategoria = async (categoriaId: string) => {
+    const novasCategorias = categorias.filter(cat => cat.id !== categoriaId);
+    setCategorias(novasCategorias);
+    await AsyncStorage.setItem('categorias', JSON.stringify(novasCategorias));
+
+    const atualizados = dados.map(item =>
+      item.categoriaId === categoriaId ? { ...item, categoriaId: undefined } : item
+    );
+    setDados(atualizados);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(atualizados));
+  };
+
+  const aplicarCategoria = (categoriaId: string | null) => {
     if (itemSelecionadoIndex !== null) {
       const novos = [...dados];
-      if (categoria) {
-        novos[itemSelecionadoIndex].categoria = categoria;
+      if (categoriaId) {
+        novos[itemSelecionadoIndex].categoriaId = categoriaId;
       } else {
-        delete novos[itemSelecionadoIndex].categoria;
+        delete novos[itemSelecionadoIndex].categoriaId;
       }
       setDados(novos);
       salvarNoDispositivo(novos);
@@ -121,40 +144,38 @@ export default function Index() {
                 <Text style={styles.headerText}>Valor</Text>
               </View>
             }
-            renderItem={({ item, index }) => (
-              <View style={styles.row}>
-                <Pressable
-                  style={styles.deleteButton}
-                  onPress={() => excluirItem(index)}
-                >
-                  <Text style={styles.deleteButtonText}>X</Text>
-                </Pressable>
+            renderItem={({ item, index }) => {
+              const categoria = categorias.find(cat => cat.id === item.categoriaId);
 
-                <Pressable
-                  style={[styles.cell, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]}
-                  onPress={() => abrirModalCategoria(index)}
-                >
-                  {item.categoria && (
-                    <View
-                      style={[
-                        styles.bolinha,
-                        {
-                          backgroundColor:
-                            item.categoria === 'contas'
-                              ? 'red'
-                              : item.categoria === 'mercado'
-                                ? 'green'
-                                : 'blue',
-                        },
-                      ]}
-                    />
-                  )}
-                  <Text>{item.motivo}</Text>
-                </Pressable>
+              return (
+                <View style={styles.row}>
+                  <Pressable
+                    style={styles.deleteButton}
+                    onPress={() => excluirItem(index)}
+                  >
+                    <Text style={styles.deleteButtonText}>X</Text>
+                  </Pressable>
 
-                <Text style={styles.cell}>R$ {item.valor}</Text>
-              </View>
-            )}
+                  <Pressable
+                    style={[styles.cell, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]}
+                    onPress={() => abrirModalCategoria(index)}
+                  >
+                    {categoria && (
+                      <View
+                        style={[
+                          styles.bolinha,
+                          { backgroundColor: categoria.cor },
+                        ]}
+                      />
+                    )}
+                    <Text>{item.motivo}</Text>
+                  </Pressable>
+
+                  <Text style={styles.cell}>R$ {item.valor}</Text>
+                </View>
+              );
+            }}
+
             ListFooterComponent={
               dados.length >= 2 ? (
                 <View style={[styles.row, { backgroundColor: '#f0f0f0' }]}>
@@ -202,8 +223,16 @@ export default function Index() {
 
       <CategoriaModal
         visible={modalVisible}
+        categorias={categorias}
         onClose={() => setModalVisible(false)}
         onSelect={aplicarCategoria}
+        onAddCategoria={novaCategoria => {
+          const nova = { ...novaCategoria, id: Date.now().toString() };
+          const atualizadas = [...categorias, nova];
+          setCategorias(atualizadas);
+          AsyncStorage.setItem('categorias', JSON.stringify(atualizadas));
+        }}
+        onDeleteCategoria={onDeleteCategoria}
       />
     </SafeAreaView>
   );

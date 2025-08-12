@@ -1,9 +1,7 @@
-// app/models/Dado.ts
-
-export type Categoria = 'contas' | 'mercado' | 'transporte';
 
 export type Dado = {
   motivo: string;
   valor: string;
-  categoria?: Categoria;
+  categoriaId?: string; // Referência à categoria
 };
+
