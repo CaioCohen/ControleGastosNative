@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -14,17 +14,67 @@ import {
   View,
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = 'controle_gastos_dados';
+
 export default function Index() {
   const [motivo, setMotivo] = useState('');
   const [valor, setValor] = useState('');
   const [dados, setDados] = useState<{ motivo: string; valor: string }[]>([]);
+  const [dadosSalvos, setDadosSalvos] = useState<string | null>(null);
+  const [mostraAcoes, setMostraAcoes] = useState(false);
+
+  useEffect(() => {
+    carregarDadosSalvos();
+  }, []);
+
+  const carregarDadosSalvos = async () => {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEY);
+      if (json !== null) {
+        const salvos = JSON.parse(json);
+        setDados(salvos);
+        setDadosSalvos(json);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar dados salvos:', e);
+    }
+  };
+
+  const salvarNoDispositivo = async (dadosParaSalvar: any) => {
+    try {
+      const json = JSON.stringify(dadosParaSalvar);
+      await AsyncStorage.setItem(STORAGE_KEY, json);
+      setDadosSalvos(json);
+      setMostraAcoes(false);
+    } catch (e) {
+      console.error('Erro ao salvar:', e);
+    }
+  };
 
   const adicionarItem = () => {
     if (!motivo.trim() || !valor.trim()) return;
 
-    setDados((prev) => [...prev, { motivo, valor }]);
+    const novos = [...dados, { motivo, valor }];
+    setDados(novos);
+    salvarNoDispositivo(novos); // salva direto após adicionar
     setMotivo('');
     setValor('');
+  };
+
+  const excluirItem = (index: number) => {
+    const novos = dados.filter((_, i) => i !== index);
+    setDados(novos);
+    setMostraAcoes(true); // mostra os botões de salvar/refazer
+  };
+
+  const refazerAlteracoes = () => {
+    if (dadosSalvos !== null) {
+      const antigos = JSON.parse(dadosSalvos);
+      setDados(antigos);
+      setMostraAcoes(false);
+    }
   };
 
   return (
@@ -50,9 +100,7 @@ export default function Index() {
               <View style={styles.row}>
                 <Pressable
                   style={styles.deleteButton}
-                  onPress={() =>
-                    setDados((prev) => prev.filter((_, i) => i !== index))
-                  }
+                  onPress={() => excluirItem(index)}
                 >
                   <Text style={styles.deleteButtonText}>X</Text>
                 </Pressable>
@@ -60,7 +108,29 @@ export default function Index() {
                 <Text style={styles.cell}>R$ {item.valor}</Text>
               </View>
             )}
+            ListFooterComponent={
+              dados.length >= 2 ? (
+                <View style={[styles.row, { backgroundColor: '#f0f0f0' }]}>
+                  <View style={[styles.cell, { flex: 0.5 }]} />
+                  <Text style={[styles.cell, { fontWeight: 'bold' }]}>Soma</Text>
+                  <Text style={[styles.cell, { fontWeight: 'bold' }]}>
+                    R$ {dados.reduce((total, item) => total + parseFloat(item.valor || '0'), 0).toFixed(2)}
+                  </Text>
+                </View>
+              ) : null
+            }
           />
+
+          {mostraAcoes && (
+            <View style={styles.acoesContainer}>
+              <Pressable style={[styles.button, styles.salvar]} onPress={() => salvarNoDispositivo(dados)}>
+                <Text style={styles.buttonText}>Salvar</Text>
+              </Pressable>
+              <Pressable style={[styles.button, styles.refazer]} onPress={refazerAlteracoes}>
+                <Text style={styles.buttonText}>Refazer</Text>
+              </Pressable>
+            </View>
+          )}
 
           <ScrollView contentContainerStyle={styles.inputGroup} keyboardShouldPersistTaps="handled">
             <TextInput
@@ -155,4 +225,11 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 18,
   },
+  acoesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  salvar: { backgroundColor: 'green', flex: 1, marginRight: 8 },
+  refazer: { backgroundColor: 'orange', flex: 1, marginLeft: 8 },
 });
