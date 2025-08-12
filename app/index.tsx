@@ -7,12 +7,15 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableWithoutFeedback,
-  View,
+  View
 } from 'react-native';
+import { CategoriaModal } from './components/CategoriaModal';
+import { Dado } from './models/Dado';
+import { styles } from './styles';
+
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -21,9 +24,11 @@ const STORAGE_KEY = 'controle_gastos_dados';
 export default function Index() {
   const [motivo, setMotivo] = useState('');
   const [valor, setValor] = useState('');
-  const [dados, setDados] = useState<{ motivo: string; valor: string }[]>([]);
+  const [dados, setDados] = useState<Dado[]>([]);
   const [dadosSalvos, setDadosSalvos] = useState<string | null>(null);
   const [mostraAcoes, setMostraAcoes] = useState(false);
+  const [itemSelecionadoIndex, setItemSelecionadoIndex] = useState<number | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     carregarDadosSalvos();
@@ -77,6 +82,26 @@ export default function Index() {
     }
   };
 
+  const abrirModalCategoria = (index: number) => {
+    setItemSelecionadoIndex(index);
+    setModalVisible(true);
+  };
+
+  const aplicarCategoria = (categoria: Dado['categoria'] | null) => {
+    if (itemSelecionadoIndex !== null) {
+      const novos = [...dados];
+      if (categoria) {
+        novos[itemSelecionadoIndex].categoria = categoria;
+      } else {
+        delete novos[itemSelecionadoIndex].categoria;
+      }
+      setDados(novos);
+      salvarNoDispositivo(novos);
+      setModalVisible(false);
+      setItemSelecionadoIndex(null);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -104,7 +129,29 @@ export default function Index() {
                 >
                   <Text style={styles.deleteButtonText}>X</Text>
                 </Pressable>
-                <Text style={styles.cell}>{item.motivo}</Text>
+
+                <Pressable
+                  style={[styles.cell, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]}
+                  onPress={() => abrirModalCategoria(index)}
+                >
+                  {item.categoria && (
+                    <View
+                      style={[
+                        styles.bolinha,
+                        {
+                          backgroundColor:
+                            item.categoria === 'contas'
+                              ? 'red'
+                              : item.categoria === 'mercado'
+                                ? 'green'
+                                : 'blue',
+                        },
+                      ]}
+                    />
+                  )}
+                  <Text>{item.motivo}</Text>
+                </Pressable>
+
                 <Text style={styles.cell}>R$ {item.valor}</Text>
               </View>
             )}
@@ -152,84 +199,12 @@ export default function Index() {
           </ScrollView>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+
+      <CategoriaModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSelect={aplicarCategoria}
+      />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
-  },
-  grid: {
-    flex: 1,
-    marginTop: 8,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#eee',
-    padding: 8,
-  },
-  headerText: {
-    flex: 1,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center', // Alinha verticalmente todos os itens
-    height: 40,            // Altura fixa para evitar diferenças
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-  },
-  cell: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  inputGroup: {
-    paddingVertical: 16,
-    paddingBottom: 40, // deixa espaço extra para o botão não colar na borda
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#aaa',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    flex: 0.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  deleteButtonText: {
-    color: 'red',
-    fontSize: 18,
-  },
-  acoesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  salvar: { backgroundColor: 'green', flex: 1, marginRight: 8 },
-  refazer: { backgroundColor: 'orange', flex: 1, marginLeft: 8 },
-});
