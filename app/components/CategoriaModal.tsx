@@ -1,6 +1,6 @@
 // app/components/CategoriaModal.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -33,10 +33,22 @@ export const CategoriaModal = ({
 }: CategoriaModalProps) => {
   const [descricao, setDescricao] = useState('');
   const [cor, setCor] = useState('');
+  const [modoEdicao, setModoEdicao] = useState(false);
+
+  useEffect(() => {
+    if (!visible) {
+      setModoEdicao(false);
+    }
+  }, [visible]);
 
   const adicionar = () => {
     if (!descricao.trim() || !cor.trim()) return;
-    onAddCategoria({ descricao, cor });
+
+    onAddCategoria({
+      descricao: descricao.trim(),
+      cor: cor.trim().toLowerCase(),
+    });
+
     setDescricao('');
     setCor('');
   };
@@ -77,9 +89,11 @@ export const CategoriaModal = ({
                     <Text>{cat.descricao}</Text>
                   </Pressable>
 
-                  <Pressable onPress={() => onDeleteCategoria(cat.id)}>
-                    <Text style={{ color: 'red', fontSize: 16 }}>❌</Text>
-                  </Pressable>
+                  {modoEdicao && (
+                    <Pressable onPress={() => onDeleteCategoria(cat.id)}>
+                      <Text style={{ color: 'red', fontSize: 16 }}>❌</Text>
+                    </Pressable>
+                  )}
                 </View>
               ))}
 
@@ -89,24 +103,36 @@ export const CategoriaModal = ({
                 </Text>
               </Pressable>
 
-              <View style={{ marginTop: 24 }}>
-                <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Nova categoria</Text>
-                <TextInput
-                  placeholder="Descrição"
-                  value={descricao}
-                  onChangeText={setDescricao}
-                  style={[styles.input, { marginBottom: 8 }]}
-                />
-                <TextInput
-                  placeholder="Cor (ex: red, green, #3366ff)"
-                  value={cor}
-                  onChangeText={setCor}
-                  style={[styles.input, { marginBottom: 8 }]}
-                />
-                <Pressable style={styles.button} onPress={adicionar}>
-                  <Text style={styles.buttonText}>Adicionar</Text>
+              {!modoEdicao && (
+                <Pressable onPress={() => setModoEdicao(true)}>
+                  <Text style={{ color: '#007AFF', fontSize: 16, marginTop: 12 }}>
+                    Editar
+                  </Text>
                 </Pressable>
-              </View>
+              )}
+
+              {modoEdicao && (
+                <View style={{ marginTop: 24 }}>
+                  <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Nova categoria</Text>
+                  <TextInput
+                    placeholder="Descrição"
+                    value={descricao}
+                    onChangeText={setDescricao}
+                    style={[styles.input, { marginBottom: 8 }]}
+                  />
+                  <TextInput
+                    placeholder="Cor (ex: red, green, #3366ff)"
+                    value={cor}
+                    onChangeText={setCor}
+                    style={[styles.input, { marginBottom: 8 }]}
+                  />
+                  <Pressable style={styles.button} onPress={adicionar}>
+                    <Text style={styles.buttonText}>Adicionar</Text>
+                  </Pressable>
+                </View>
+              )}
+
+
             </View>
           </TouchableWithoutFeedback>
         </View>

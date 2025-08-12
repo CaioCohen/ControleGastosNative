@@ -173,7 +173,7 @@ export default function Index() {
                     style={styles.deleteButton}
                     onPress={() => excluirItem(index)}
                   >
-                    <Text style={styles.deleteButtonText}>X</Text>
+                    <Text style={styles.deleteButtonText}>❌</Text>
                   </Pressable>
 
                   <Pressable
