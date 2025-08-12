@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ControleGastos",
+    "name": "Controle de Gastos",
     "slug": "ControleGastos",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.CaioCohen.ControleGastos"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c580f2ab-576c-4c41-97a3-5f99cf0db9a1"
+      }
+    },
+    "owner": "caiocohen"
   }
 }
