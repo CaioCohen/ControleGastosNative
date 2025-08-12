@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRouter } from 'expo-router';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Categoria } from './models/Categoria';
 import { Dado } from './models/Dado';
 
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, TouchableWithoutFeedback, View } from 'react-native';
 import { CategoriaModal } from './components/CategoriaModal';
 import { GastosForm } from './components/GastosForm';
 import { GastosGrid } from './components/GastosGrid';
@@ -21,10 +22,24 @@ export default function Index() {
   const [itemSelecionadoIndex, setItemSelecionadoIndex] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const router = useRouter();
+
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: 'Controle de Gastos',
+      headerRight: () => (
+        <Pressable onPress={() => router.push('/planilha')} style={{ marginRight: 16 }}>
+          <Ionicons name="document-text-outline" size={24} color="black" />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
 
   useEffect(() => {
     carregarDadosSalvos();
-    carregarCategoriasSalvas(); // novo
+    carregarCategoriasSalvas();
   }, []);
 
   const carregarDadosSalvos = async () => {
@@ -56,7 +71,6 @@ export default function Index() {
     if (json) {
       const lista = JSON.parse(json);
       if (lista.length === 0) {
-        // Se não houver categorias salvas, inicializa com as categorias padrão
         await AsyncStorage.setItem('categorias', JSON.stringify(getCategoriasIniciais()));
         setCategorias(getCategoriasIniciais());
         return;
@@ -82,7 +96,8 @@ export default function Index() {
   const adicionarItem = () => {
     if (!motivo.trim() || !valor.trim()) return;
 
-    const novos = [...dados, { motivo, valor }];
+    const novaData = new Date().toISOString();
+    const novos = [...dados, { motivo, valor, data: novaData }];
     setDados(novos);
     salvarNoDispositivo(novos);
     setMotivo('');
@@ -93,6 +108,11 @@ export default function Index() {
     const novos = dados.filter((_, i) => i !== index);
     setDados(novos);
     setMostraAcoes(true);
+  };
+
+  const excluirTodos = () => {
+    setDados([]);
+    setMostraAcoes(true); // mostra os botões de salvar/refazer
   };
 
   const refazerAlteracoes = () => {
@@ -142,23 +162,28 @@ export default function Index() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.container}
         >
-          <GastosGrid
-            dados={dados}
-            categorias={categorias}
-            onExcluir={excluirItem}
-            onAbrirModalCategoria={abrirModalCategoria}
-          />
+          <View style={{ flex: mostraAcoes ? 6 : 7 }}>
+            <GastosGrid
+              dados={dados}
+              categorias={categorias}
+              onExcluirTodos={excluirTodos}
+              onExcluir={excluirItem}
+              onAbrirModalCategoria={abrirModalCategoria}
+            />
+          </View>
 
-          <GastosForm
-            motivo={motivo}
-            valor={valor}
-            mostraAcoes={mostraAcoes}
-            onSalvar={() => salvarNoDispositivo(dados)} 
-            onRefazer={refazerAlteracoes}            
-            setMotivo={setMotivo}
-            setValor={setValor}
-            onAdicionar={adicionarItem}
-          />
+          <View style={{ flex: mostraAcoes ? 4 : 3 }}>
+            <GastosForm
+              motivo={motivo}
+              valor={valor}
+              setMotivo={setMotivo}
+              setValor={setValor}
+              onAdicionar={adicionarItem}
+              mostraAcoes={mostraAcoes}
+              onSalvar={() => salvarNoDispositivo(dados)}
+              onRefazer={refazerAlteracoes}
+            />
+          </View>
 
           <CategoriaModal
             visible={modalVisible}

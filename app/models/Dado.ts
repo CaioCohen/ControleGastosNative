@@ -1,7 +1,6 @@
-
 export type Dado = {
   motivo: string;
   valor: string;
-  categoriaId?: string; // Referência à categoria
+  categoriaId?: string;
+  data?: string; // ISO ou timestamp
 };
-

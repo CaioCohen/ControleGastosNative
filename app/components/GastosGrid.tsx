@@ -8,6 +8,7 @@ type GastosGridProps = {
   dados: Dado[];
   categorias: Categoria[];
   onExcluir: (index: number) => void;
+  onExcluirTodos: () => void;
   onAbrirModalCategoria: (index: number) => void;
 };
 
@@ -15,8 +16,16 @@ export const GastosGrid = ({
   dados,
   categorias,
   onExcluir,
+  onExcluirTodos,
   onAbrirModalCategoria,
 }: GastosGridProps) => {
+
+  const formatarData = (iso: string | undefined) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+
   return (
     <FlatList
       style={styles.grid}
@@ -24,9 +33,16 @@ export const GastosGrid = ({
       keyExtractor={(_, index) => index.toString()}
       ListHeaderComponent={
         <View style={styles.header}>
-          <View style={[styles.cell, { flex: 0.5 }]} />
+          <View style={[styles.cell, { flex: 0.5, alignItems: 'center' }]}>
+            {dados.length > 0 && (
+              <Pressable onPress={onExcluirTodos}>
+                <Text style={{ color: 'red', fontSize: 16 }}>❌</Text>
+              </Pressable>
+            )}
+          </View>
           <Text style={styles.headerText}>Motivo</Text>
           <Text style={styles.headerText}>Valor</Text>
+          <Text style={styles.headerText}>Data</Text>
         </View>
       }
       renderItem={({ item, index }) => {
@@ -57,6 +73,9 @@ export const GastosGrid = ({
             </Pressable>
 
             <Text style={styles.cell}>R$ {item.valor}</Text>
+            <Text style={styles.cell}>
+              {formatarData(item.data)}
+            </Text>
           </View>
         );
       }}
@@ -68,6 +87,7 @@ export const GastosGrid = ({
             <Text style={[styles.cell, { fontWeight: 'bold' }]}>
               R$ {dados.reduce((total, item) => total + parseFloat(item.valor || '0'), 0).toFixed(2)}
             </Text>
+            <Text style={[styles.cell, { fontWeight: 'bold' }]}></Text>
           </View>
         ) : null
       }

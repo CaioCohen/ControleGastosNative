@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     grid: {
-        flex: 1,
         marginTop: 8,
     },
     header: {
