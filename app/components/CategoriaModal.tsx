@@ -54,6 +54,11 @@ export const CategoriaModal = ({
     setCor('');
   };
 
+  const handleChange = (text: string) => {
+  const limpo = text.trim().toLowerCase();
+  setCor(limpo);
+  }
+
   return (
     <Modal
       visible={visible}
@@ -128,7 +133,7 @@ export const CategoriaModal = ({
                     <TextInput
                       placeholder="Cor (ex: red, green)"
                       value={cor}
-                      onChangeText={(text) => setCor(text.toLowerCase())}
+                      onChangeText={setCor}
                       style={[styles.input, { marginBottom: 8, width: '100%' }]}
                     />
 

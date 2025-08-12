@@ -1,24 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  FlatList,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableWithoutFeedback,
-  View
-} from 'react-native';
-import { CategoriaModal } from './components/CategoriaModal';
 import { Categoria } from './models/Categoria';
 import { Dado } from './models/Dado';
-import { styles } from './styles';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
+import { CategoriaModal } from './components/CategoriaModal';
+import { GastosForm } from './components/GastosForm';
+import { GastosGrid } from './components/GastosGrid';
+import { styles } from './styles';
 
 const STORAGE_KEY = 'controle_gastos_dados';
 
@@ -94,7 +84,7 @@ export default function Index() {
 
     const novos = [...dados, { motivo, valor }];
     setDados(novos);
-    salvarNoDispositivo(novos); // salva direto após adicionar
+    salvarNoDispositivo(novos);
     setMotivo('');
     setValor('');
   };
@@ -102,7 +92,7 @@ export default function Index() {
   const excluirItem = (index: number) => {
     const novos = dados.filter((_, i) => i !== index);
     setDados(novos);
-    setMostraAcoes(true); // mostra os botões de salvar/refazer
+    setMostraAcoes(true);
   };
 
   const refazerAlteracoes = () => {
@@ -152,109 +142,40 @@ export default function Index() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.container}
         >
-          <FlatList
-            style={styles.grid}
-            data={dados}
-            keyExtractor={(_, index) => index.toString()}
-            ListHeaderComponent={
-              <View style={styles.header}>
-                {/* espaço vazio no cabeçalho da coluna de exclusão */}
-                <View style={[styles.cell, { flex: 0.5 }]} />
-                <Text style={styles.headerText}>Motivo</Text>
-                <Text style={styles.headerText}>Valor</Text>
-              </View>
-            }
-            renderItem={({ item, index }) => {
-              const categoria = categorias.find(cat => cat.id === item.categoriaId);
-
-              return (
-                <View style={styles.row}>
-                  <Pressable
-                    style={styles.deleteButton}
-                    onPress={() => excluirItem(index)}
-                  >
-                    <Text style={styles.deleteButtonText}>❌</Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={[styles.cell, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]}
-                    onPress={() => abrirModalCategoria(index)}
-                  >
-                    {categoria && (
-                      <View
-                        style={[
-                          styles.bolinha,
-                          { backgroundColor: categoria.cor },
-                        ]}
-                      />
-                    )}
-                    <Text>{item.motivo}</Text>
-                  </Pressable>
-
-                  <Text style={styles.cell}>R$ {item.valor}</Text>
-                </View>
-              );
-            }}
-
-            ListFooterComponent={
-              dados.length >= 2 ? (
-                <View style={[styles.row, { backgroundColor: '#f0f0f0' }]}>
-                  <View style={[styles.cell, { flex: 0.5 }]} />
-                  <Text style={[styles.cell, { fontWeight: 'bold' }]}>Soma</Text>
-                  <Text style={[styles.cell, { fontWeight: 'bold' }]}>
-                    R$ {dados.reduce((total, item) => total + parseFloat(item.valor || '0'), 0).toFixed(2)}
-                  </Text>
-                </View>
-              ) : null
-            }
+          <GastosGrid
+            dados={dados}
+            categorias={categorias}
+            onExcluir={excluirItem}
+            onAbrirModalCategoria={abrirModalCategoria}
           />
 
-          {mostraAcoes && (
-            <View style={styles.acoesContainer}>
-              <Pressable style={[styles.button, styles.salvar]} onPress={() => salvarNoDispositivo(dados)}>
-                <Text style={styles.buttonText}>Salvar</Text>
-              </Pressable>
-              <Pressable style={[styles.button, styles.refazer]} onPress={refazerAlteracoes}>
-                <Text style={styles.buttonText}>Refazer</Text>
-              </Pressable>
-            </View>
-          )}
+          <GastosForm
+            motivo={motivo}
+            valor={valor}
+            mostraAcoes={mostraAcoes}
+            onSalvar={() => salvarNoDispositivo(dados)} 
+            onRefazer={refazerAlteracoes}            
+            setMotivo={setMotivo}
+            setValor={setValor}
+            onAdicionar={adicionarItem}
+          />
 
-          <ScrollView contentContainerStyle={styles.inputGroup} keyboardShouldPersistTaps="handled">
-            <TextInput
-              placeholder="Motivo"
-              style={styles.input}
-              value={motivo}
-              onChangeText={setMotivo}
-            />
-            <TextInput
-              placeholder="Valor"
-              style={styles.input}
-              value={valor}
-              onChangeText={setValor}
-              keyboardType="numeric"
-            />
-            <Pressable style={styles.button} onPress={adicionarItem}>
-              <Text style={styles.buttonText}>Adicionar</Text>
-            </Pressable>
-          </ScrollView>
+          <CategoriaModal
+            visible={modalVisible}
+            categorias={categorias}
+            onClose={() => setModalVisible(false)}
+            onSelect={aplicarCategoria}
+            onAddCategoria={(novaCategoria) => {
+              const nova = { ...novaCategoria, id: Date.now().toString() };
+              const atualizadas = [...categorias, nova];
+              setCategorias(atualizadas);
+              AsyncStorage.setItem('categorias', JSON.stringify(atualizadas));
+            }}
+            onDeleteCategoria={onDeleteCategoria}
+            motivoSelecionado={itemSelecionadoIndex !== null ? dados[itemSelecionadoIndex]?.motivo : ''}
+          />
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-
-      <CategoriaModal
-        visible={modalVisible}
-        categorias={categorias}
-        onClose={() => setModalVisible(false)}
-        onSelect={aplicarCategoria}
-        onAddCategoria={novaCategoria => {
-          const nova = { ...novaCategoria, id: Date.now().toString() };
-          const atualizadas = [...categorias, nova];
-          setCategorias(atualizadas);
-          AsyncStorage.setItem('categorias', JSON.stringify(atualizadas));
-        }}
-        onDeleteCategoria={onDeleteCategoria}
-        motivoSelecionado={dados[itemSelecionadoIndex!]?.motivo}
-      />
     </SafeAreaView>
   );
 }
