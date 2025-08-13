@@ -162,7 +162,7 @@ export default function Index() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.container}
         >
-          <View style={{ flex: mostraAcoes ? 6 : 7 }}>
+          <View style={{ flex: mostraAcoes ? 5 : 6 }}>
             <GastosGrid
               dados={dados}
               categorias={categorias}
@@ -172,7 +172,7 @@ export default function Index() {
             />
           </View>
 
-          <View style={{ flex: mostraAcoes ? 4 : 3 }}>
+          <View style={{ flex: mostraAcoes ? 5 : 4 }}>
             <GastosForm
               motivo={motivo}
               valor={valor}

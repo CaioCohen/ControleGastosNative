@@ -55,8 +55,8 @@ export const CategoriaModal = ({
   };
 
   const handleChange = (text: string) => {
-  const limpo = text.trim().toLowerCase();
-  setCor(limpo);
+    const limpo = text.trim().toLowerCase();
+    setCor(limpo);
   }
 
   return (
@@ -71,7 +71,7 @@ export const CategoriaModal = ({
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
               <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
-                
+
                 <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>
                   {motivoSelecionado}
                 </Text>
@@ -123,6 +123,8 @@ export const CategoriaModal = ({
                   <View style={{ marginTop: 24 }}>
                     <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Nova categoria</Text>
 
+                    {/* Label Descrição */}
+                    <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Descrição</Text>
                     <TextInput
                       placeholder="Descrição"
                       value={descricao}
@@ -130,6 +132,8 @@ export const CategoriaModal = ({
                       style={[styles.input, { marginBottom: 8, width: '100%' }]}
                     />
 
+                    {/* Label Cor */}
+                    <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Cor(Ex: red, green...)</Text>
                     <TextInput
                       placeholder="Cor (ex: red, green)"
                       value={cor}

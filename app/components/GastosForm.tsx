@@ -9,7 +9,7 @@ type GastosFormProps = {
     setMotivo: (texto: string) => void;
     setValor: (texto: string) => void;
     onAdicionar: () => void;
-    onSalvar: () => void; 
+    onSalvar: () => void;
     onRefazer: () => void;
 };
 
@@ -25,12 +25,17 @@ export const GastosForm = ({
 }: GastosFormProps) => {
     return (
         <ScrollView contentContainerStyle={styles.inputGroup} keyboardShouldPersistTaps="handled">
+            {/* Label Motivo */}
+            <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Motivo</Text>
             <TextInput
                 placeholder="Motivo"
                 style={styles.input}
                 value={motivo}
                 onChangeText={setMotivo}
             />
+
+            {/* Label Valor */}
+            <Text style={{ fontWeight: 'bold', marginTop: 12, marginBottom: 4 }}>Valor</Text>
             <TextInput
                 placeholder="Valor"
                 style={styles.input}
@@ -38,10 +43,11 @@ export const GastosForm = ({
                 onChangeText={setValor}
                 keyboardType="numeric"
             />
+
             <Pressable style={styles.button} onPress={onAdicionar}>
                 <Text style={styles.buttonText}>Adicionar</Text>
             </Pressable>
-            
+
             {mostraAcoes && (
                 <View style={styles.acoesContainer}>
                     <Pressable style={[styles.button, styles.salvar]} onPress={onSalvar}>
