@@ -13,6 +13,9 @@ import { styles } from './styles';
 
 const STORAGE_KEY = 'controle_gastos_dados';
 
+type SortKey = 'motivo' | 'valor' | 'data' | null;
+type SortDir = 'asc' | 'desc' | null;
+
 export default function Index() {
   const [motivo, setMotivo] = useState('');
   const [valor, setValor] = useState('');
@@ -22,6 +25,8 @@ export default function Index() {
   const [itemSelecionadoIndex, setItemSelecionadoIndex] = useState<number | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [sortKey, setSortKey] = useState<SortKey>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
   const router = useRouter();
 
   const navigation = useNavigation();
@@ -47,13 +52,60 @@ export default function Index() {
       const json = await AsyncStorage.getItem(STORAGE_KEY);
       if (json !== null) {
         const salvos = JSON.parse(json);
-        setDados(salvos);
+        setDados(ordenarPorData(salvos));
         setDadosSalvos(json);
       }
     } catch (e) {
       console.error('Erro ao carregar dados salvos:', e);
     }
   };
+
+  const applySort = (list: Dado[]) => {
+    if (!sortKey || !sortDir) return list;
+
+    const sorted = [...list].sort((a, b) => {
+      let av: number | string = '';
+      let bv: number | string = '';
+
+      switch (sortKey) {
+        case 'valor':
+          av = parseFloat(a.valor || '0');
+          bv = parseFloat(b.valor || '0');
+          break;
+        case 'data':
+          av = new Date(a.data || 0).getTime();
+          bv = new Date(b.data || 0).getTime();
+          break;
+        case 'motivo':
+        default:
+          av = (a.motivo || '').toLowerCase();
+          bv = (b.motivo || '').toLowerCase();
+          break;
+      }
+
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  };
+
+  const onHeaderPress = (key: Exclude<SortKey, null>) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir('asc');
+    } else if (sortDir === 'asc') {
+      setSortDir('desc');
+    } else if (sortDir === 'desc') {
+      setSortKey(null);
+      setSortDir(null);
+    } else {
+      setSortDir('asc');
+    }
+  };
+
+  const dadosExibidos = applySort(dados);
 
   const getCategoriasIniciais = (): Categoria[] => {
     return [
@@ -97,7 +149,7 @@ export default function Index() {
     if (!motivo.trim() || !valor.trim()) return;
 
     const novaData = new Date().toISOString();
-    const novos = [...dados, { motivo, valor, data: novaData }];
+    const novos = ordenarPorData([...dados, { motivo, valor, data: novaData }]);
     setDados(novos);
     salvarNoDispositivo(novos);
     setMotivo('');
@@ -155,6 +207,14 @@ export default function Index() {
     }
   };
 
+  const ordenarPorData = (lista: Dado[]) => {
+    return [...lista].sort((a, b) => {
+      const dataA = new Date(a.data ?? 0).getTime();
+      const dataB = new Date(b.data ?? 0).getTime();
+      return dataB - dataA;
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -164,11 +224,14 @@ export default function Index() {
         >
           <View style={{ flex: mostraAcoes ? 5 : 6 }}>
             <GastosGrid
-              dados={dados}
+              dados={dadosExibidos}
               categorias={categorias}
               onExcluirTodos={excluirTodos}
               onExcluir={excluirItem}
               onAbrirModalCategoria={abrirModalCategoria}
+              onHeaderPress={onHeaderPress}
+              sortKey={sortKey}
+              sortDir={sortDir}
             />
           </View>
 
