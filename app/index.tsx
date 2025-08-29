@@ -219,7 +219,7 @@ export default function Index() {
     <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.container}
         >
           <View style={{ flex: mostraAcoes ? 5 : 6 }}>

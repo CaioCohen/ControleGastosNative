@@ -18,6 +18,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.CaioCohen.ControleGastos",
+      "softwareKeyboardLayoutMode": "resize",
       "versionCode": 1
     },
     "web": {
